@@ -1,0 +1,140 @@
+다른 모듈 패키지 does not exist 에러 - maven .jar 파일 생성 안됨  ---- multi module package does not exist / custom package
+인텔리제이로 할때는 의존성, 종속성 관리를 따로 해줘서 됐는데 서버 구성할때는maven 만 사용해서 문제 발생
+테스트용 메이븐 다중 모듈 프로젝트 예제 참고 - https://codegear.tistory.com/21
+
+[1] Lombok 디펜던시 
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
+		</dependency>
+
+안됨 
+
+[2] 인텔리제이 설정 초기화
+
+서버라서 해당사항없음
+
+[3] mvn idea:idea
+
+빌드는 되는데 mvn idea:idea 명령은 IntelliJ IDEA 프로젝트 파일을 생성하는 데 사용되고  .jar 파일 생성과는 직접적인 관련이 없다함 
+
+[4] 최상위 모듈에서 하위 모듈 설정 
+
+    <modules>
+        <module>Library</module>
+        <module>Admin</module>
+        <module>Customer</module>
+    </modules>
+
+문제없음 
+
+[5] 모듈 경로 설정 
+
+
+ C:\Users\Dust\.m2\repository\com\ecommerce\library\Library\0.0.1-SNAPSHOT\Library-0.0.1-SNAPSHOT.jar
+
+
+[6] 메이븐 캐시 정리 
+
+mvn dependency:purge-local-repository
+
+[7] 의존성 모듈 설정 확인 
+
+<dependency>
+    <groupId>com.ecommerce.library</groupId>
+    <artifactId>Library</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+
+
+
+[8] 
+Library 모듈이 실행 가능한 JAR (Spring Boot 애플리케이션)로 패키지되어 있으면, 그 구조 때문에 Admin 같은 다른 모듈에서 Library 모듈의 클래스들을 직접 참조하는 데 문제가 생깁니다. 실행 가능한 JAR는 클래스들을 BOOT-INF/classes 내부에 위치시키기 때문에, 이러한 JAR은 일반적인 라이브러리 JAR처럼 동작하지 않습니다. 그 결과, Admin 모듈은 Library 모듈의 클래스를 찾을 수 없습니다.
+
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <goals>
+                <goal>repackage</goal>
+            </goals>
+            <configuration>
+                <classifier>exec</classifier>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+안됨
+
+
+[9]   jar -tf 로 의존성 트리 확인해서 클래스 있나 확인
+
+ jar -tf .\Library-0.0.1-SNAPSHOT.jar
+
+
+BOOT-INF/classes/application.properties
+BOOT-INF/classes/com/ecommerce/library/dto/AdminDto.class
+BOOT-INF/classes/com/ecommerce/library/dto/CartItemDto.class
+BOOT-INF/classes/com/ecommerce/library/dto/CategoryDto.class
+BOOT-INF/classes/com/ecommerce/library/dto/CustomerDto.class
+BOOT-INF/classes/com/ecommerce/library/dto/ProductDto.class
+BOOT-INF/classes/com/ecommerce/library/dto/ShoppingCartDto.class
+BOOT-INF/classes/com/ecommerce/library/LibraryApplication.class
+BOOT-INF/classes/com/ecommerce/library/model/Admin.class
+
+~~~~ 문제 없음 찾지못하는 클래스들 다 들어가있음
+
+[10] 
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>17</source>
+					<target>17</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.24</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+이거 빼니까 됨 이유 예상은
+
+1. 클래스 로딩 문제
+spring-boot-maven-plugin에 의해 생성된 실행 가능한 JAR 파일은 클래스 로더가 표준 Java JAR와는 다르게 클래스를 로드
+클래스들이 BOOT-INF/classes에 포함되어 클래스들을 일반적인 방식으로 참조할 때 문제가 발생할 수 있음
+플러그인 제거하면  표준 Java 라이브러리 JAR를 생성하게 되어, 모든 클래스가 루트 디렉토리에 직접 위치하여 다른 모듈에서의 클래스 참조가 가능해지고 의존성 해결에 문제가 없어진다.
+
+2. 의존성 충돌
+spring-boot-maven-plugin 설정에서 lombok을 제외하는 구성이 있었는데 이 설정이 Lombok의 처리가 잘 이루어지지 않아 
+어노테이션을 기반으로 생성되어야 할 getter, setter, 생성자 등 코드가 생성되지 않아 컴파일 오류가 발생할 수 있었음
+
+
+
+
