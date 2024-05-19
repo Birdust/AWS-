@@ -1,0 +1,55 @@
+Column 'is_todays_bread' not found 
+
+[1] 데이터베이스 스키마 검증
+
+DESCRIBE products;
+
+SELECT `is_todays_bread` FROM `ecommerce_springboot`.`products`;
+
+
+존재한다.
+
+
+
+[2] 불린을 tinyint으로 해보기
+ 
+ALTER TABLE products CHANGE is_todays_bread is_todays_bread TINYINT(1) NOT NULL DEFAULT 0; 
+
+안됨
+
+[3] model 설정 문제 있나 확인
+
+
+    @Column(name = "is_todays_bread", columnDefinition = "BIT")
+    private boolean isTodaysBread;
+
+    public boolean getIsTodaysBread() {
+        return isTodaysBread;
+    }
+    public void setIsTodaysBread(boolean isTodaysBread) {
+        this.isTodaysBread = isTodaysBread;
+    }
+
+
+문제 없어보인다.
+
+[4] ProductDto 클래스에 isTodaysBread 필드가 빠져있었음
+
+private boolean isTodaysBread;  추가하고 필드 접근이나
+메소드(getter/setter)를 호출할 때 컴파일 오류 해결
+
+
+++++ 
+ # Column 'is_todays_bread' not found 해결을 위한 로그 보는 설정
+spring.jpa.show-sql=true   # Hibernate가 실행하는 모든 SQL 쿼리를 콘솔에 출력
+spring.jpa.properties.hibernate.format_sql=true #  SQL 쿼리를 보기 좋게 포맷팅하여 출력
+logging.level.org.hibernate.SQL=DEBUG # Hibernate가 생성하는 SQL 쿼리에 대한 로그 레벨을 DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE # TRACE 레벨은 DEBUG보다도 더 상세한 로깅을 제공
+
+
+
+
+
+
+
+
