@@ -1,0 +1,19 @@
+### 1. **Next.js 클라이언트**
+
+- **역할**: React 기반의 프론트엔드 애플리케이션으로, 사용자 인터페이스를 제공하고, 필요한 데이터를 NestJS API 서버로부터 가져온다.
+- **주소**: `http://localhost:3000`
+- **실행 명령**: `next dev`
+
+### 2. **Flask API 서버**
+
+- **역할**: Python으로 작성된 백엔드 서버로, Flask를 통해 특정 데이터 처리(예: 그래프 생성 등)를 담당
+- **주소**: `http://127.0.0.1:5001` (또는 `http://192.168.1.106:5001` 네트워크 내부 IP로도 접근 가능)
+- **실행 명령**: `python c:/Users/dbict/Desktop/traffic_analyze/python/add_api/app.py`
+
+### 3. **NestJS API 서버**
+
+- **역할**: TypeScript로 작성된 백엔드 서버로, Next.js 클라이언트의 API 요청을 처리하고, Flask API 서버와 통신하여 데이터를 받아온다.
+- **주소**: `http://localhost:3000`에서 Next.js API 라우트를 통해 접근 (e.g., `http://localhost:3000/graph/437`)
+- **실행 명령**: `npm run start` (NestJS 서버)
+
+flask -> nest -> next 로 진행되며 nest 서버와 next 서버가 동일 포트를 사용하면 무한 로딩에 걸리게 됨..
