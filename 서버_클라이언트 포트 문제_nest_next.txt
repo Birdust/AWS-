@@ -17,3 +17,21 @@
 - **실행 명령**: `npm run start` (NestJS 서버)
 
 flask -> nest -> next 로 진행되며 nest 서버와 next 서버가 동일 포트를 사용하면 무한 로딩에 걸리게 됨..
+
+
+
+// 파일 인코딩 변경 
+
+
+파일 인코딩 확인:
+
+file -i just_io_test.py
+
+만약 다른 인코딩으로 저장되어 있다면, iconv 명령을 사용해 UTF-8로 변환
+
+
+iconv -f iso-8859-1 -t utf-8 just_io_test.py -o just_io_test_utf8.py
+코드 내 문자열 확인: iso-8859-1 
+
+iconv -f iso-8859-1 -t utf-8 io_server_backup.py -o io_server_backup2.py
+
